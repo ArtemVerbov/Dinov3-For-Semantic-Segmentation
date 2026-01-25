@@ -1,0 +1,56 @@
+optimizer:
+  _target_: torch.optim.AdamW
+  _partial_: true
+  lr: 2e-4
+scheduler:
+  _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+  _partial_: true
+  patience: 5
+model_conf:
+  dinov3_model_name: facebook/dinov3-convnext-small-pretrain-lvd1689m
+  dino_out_indices:
+  - 1
+  - 2
+  - 3
+  - 4
+  freeze_backbone: true
+  encoder_depth: 3
+  encoder_pyramid_channels: 256
+  encoder_segmentation_channels: 128
+  number_of_classes: 1
+  head_activation: null
+  head_kernel_size: 1
+  head_upsampling: 4
+data_conf:
+  dataset_name: oxford-iiit-pet
+  debug: null
+  img_size: 256
+  batch_size: 8
+  pin_memory: true
+  persistent_workers: true
+trainer_conf:
+  max_epochs: 60
+  check_val_every_n_epoch: 5
+  log_every_n_steps: 10
+  precision: 32-true
+  gradient_clip_val: null
+  accumulate_grad_batches: 1
+  deterministic: false
+  fast_dev_run: false
+  accelerator: auto
+  enable_checkpointing: true
+module_conf:
+  interval: epoch
+  frequency: ${trainer_conf.check_val_every_n_epoch}
+  monitor: val_loss
+  include_background: false
+  batches_to_visualize: 5
+model_ckpt_conf:
+  monitor: val_loss_epoch
+  save_on_exception: true
+  mode: min
+  save_top_k: 1
+project_conf:
+  project_name: dinov3_fpn
+  experiment_name: semantic_segmentation
+  track_in_clearml: true

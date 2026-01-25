@@ -1,0 +1,5 @@
+/src/outputs/
+/src/lightning_logs/
+/datasets/oxford-iiit-pet/
+/datasets/pets/
+/.idea
