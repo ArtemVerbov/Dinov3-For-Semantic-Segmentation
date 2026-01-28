@@ -33,6 +33,7 @@ class DataConfig:
     debug: None | int = None
     img_size: int = 256
     batch_size: int = 1
+    num_workers: int = 4
     pin_memory: bool = True
     persistent_workers: bool = True
 
@@ -63,6 +64,7 @@ class ModelCkptConfig:
     save_on_exception: bool = True
     mode: str = 'min'
     save_top_k: int = 1
+    filename: str = 'best-{epoch:02d}-{val_loss_epoch:.2f}'
 
 @dataclass
 class ProjectConfig:

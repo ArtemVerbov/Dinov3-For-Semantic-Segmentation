@@ -2,7 +2,6 @@ from functools import partial
 from typing import TYPE_CHECKING
 
 from lightning import LightningModule
-# from mlflow import MlflowClient
 from segmentation_models_pytorch.losses import DiceLoss, MULTICLASS_MODE
 from torch import Tensor
 from torch.optim import Optimizer
@@ -80,8 +79,7 @@ class SegmentationLightningModule(LightningModule):  # noqa: WPS214
         masks = targets.long()
 
         self._test_metrics(pred_mask, masks)
-        metrics = self._metrics_arrangement(self._test_metrics)
-        self.log_dict(metrics, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        self.log_dict(self._test_metrics, on_step=False, on_epoch=True, prog_bar=True, logger=True)
 
     # noinspection PyCallingNonCallable
     def configure_optimizers(self) -> dict:

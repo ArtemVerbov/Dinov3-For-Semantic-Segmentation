@@ -1,5 +1,5 @@
 import datetime
-import os
+from pathlib import Path
 
 import hydra
 from clearml import Task
@@ -51,7 +51,7 @@ def main(cfg: Config):
         dataset=train_dataset,
         batch_size=cfg.data_conf.batch_size,
         shuffle=True,
-        num_workers=os.cpu_count(),
+        num_workers=cfg.data_conf.num_workers,
         persistent_workers=cfg.data_conf.persistent_workers,
         pin_memory=cfg.data_conf.pin_memory,
     )
@@ -60,7 +60,7 @@ def main(cfg: Config):
         dataset=val_dataset,
         batch_size=cfg.data_conf.batch_size,
         shuffle=False,
-        num_workers=os.cpu_count(),
+        num_workers=cfg.data_conf.num_workers,
         persistent_workers=cfg.data_conf.persistent_workers,
         pin_memory=cfg.data_conf.pin_memory,
     )
@@ -69,7 +69,7 @@ def main(cfg: Config):
         dataset=test_dataset,
         batch_size=cfg.data_conf.batch_size,
         shuffle=False,
-        num_workers=os.cpu_count(),
+        num_workers=cfg.data_conf.num_workers,
         persistent_workers=cfg.data_conf.persistent_workers,
         pin_memory=cfg.data_conf.pin_memory,
     )
@@ -90,7 +90,7 @@ def main(cfg: Config):
         task = Task.init(
             project_name=cfg.project_conf.project_name,
             task_name=f'{cfg.project_conf.experiment_name}-{date}',
-            output_uri=True,
+            output_uri=None,
         )
         task.connect(cfg)
         task.connect_configuration(train_dataset.transform.transforms, name='transformations')
@@ -122,7 +122,13 @@ def main(cfg: Config):
         train_dataloaders=train_dl,
         val_dataloaders=val_dl,
     )
-    trainer_lm.test(dataloaders=test_dl)
+    trainer_lm.test(dataloaders=test_dl, ckpt_path='best', weights_only=False)
+
+    if cfg.trainer_conf.enable_checkpointing and cfg.project_conf.track_in_clearml:
+        best_checkpoint_path = model_checkpoint.best_model_path
+        if best_checkpoint_path:
+            print(f"Uploading best model: {Path(best_checkpoint_path).name}")
+            task.upload_artifact("best_model", artifact_object=best_checkpoint_path)
 
 
 if __name__ == "__main__":
