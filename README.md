@@ -61,4 +61,4 @@ This project uses a modular configuration system managed by Hydra. The parameter
 To start training the model, run the following command:
 
 ```bash
-python -m src.train --config-name train.yaml
+python -m src.train
