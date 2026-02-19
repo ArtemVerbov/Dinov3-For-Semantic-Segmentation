@@ -1,6 +1,8 @@
 # Semantic Segmentation with Dinov3 Backbone
 
-![](media/0_img.jpeg)
+<p align="center">
+  <img src="media/0_img.jpeg" alt="Cover Image" width="480" height="640"/>
+</p>
 
 This project provides a template for training a semantic segmentation model using a Feature Pyramid Network (FPN) architecture with a powerful Dinov3 backbone.
 
@@ -10,6 +12,15 @@ This project provides a template for training a semantic segmentation model usin
 *   **FPN Architecture:** Efficiently combines features from different scales for accurate segmentation.
 *   **ClearML Integration:** Track your experiments and manage your models with ClearML (optional).
 *   **Customizable:** Easily adapt the code to train on your own dataset.
+
+## Results
+
+Model was evaluated on Oxford-IIIT Pet Dataset and archives following results:
+
+| Metric     | Score  |
+|------------|--------|
+| Dice Score | 0.8858 |
+| mIoU       | 0.7568 |
 
 ## Prerequisites
 *   PyTorch 2.1.0+
