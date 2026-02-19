@@ -26,6 +26,7 @@ class FPNBackboneDINOv3(nn.Module):
         if freeze_backbone:
             for param in self.dino_backbone.parameters():
                 param.requires_grad = False
+            self.dino_backbone.eval()
 
         self.fpn_decoder = FPNDecoder(
             encoder_channels=self.dino_backbone.channels,

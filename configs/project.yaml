@@ -1,0 +1,3 @@
+project_conf:
+  project_name: dinov3_fpn
+  experiment_name: semantic_segmentation

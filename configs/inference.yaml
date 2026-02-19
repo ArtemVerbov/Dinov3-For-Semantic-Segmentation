@@ -1,0 +1,11 @@
+defaults:
+  - model
+  - data
+  - project
+  - _self_
+task_name: semantic_segmentation-2026-01-26 13:40
+model_name: best_model
+data_conf:
+  debug: 5
+  dataset_name: inference_dataset
+  batch_size: 1

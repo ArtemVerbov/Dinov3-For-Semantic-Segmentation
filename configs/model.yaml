@@ -1,0 +1,15 @@
+model_conf:
+  dinov3_model_name: facebook/dinov3-convnext-small-pretrain-lvd1689m
+  dino_out_indices:
+  - 1
+  - 2
+  - 3
+  - 4
+  freeze_backbone: true
+  encoder_depth: 3
+  encoder_pyramid_channels: 256
+  encoder_segmentation_channels: 128
+  number_of_classes: 3
+  head_activation: null
+  head_kernel_size: 1
+  head_upsampling: 4

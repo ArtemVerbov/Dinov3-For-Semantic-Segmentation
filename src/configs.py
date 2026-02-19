@@ -70,10 +70,10 @@ class ModelCkptConfig:
 class ProjectConfig:
     project_name: str = 'dinov3_fpn'
     experiment_name: str = 'semantic_segmentation'
-    track_in_clearml: bool = True
 
 @dataclass
 class Config:
+    track_in_clearml: bool = True
     optimizer: OptimizerConfig = field(default_factory=OptimizerConfig)
     scheduler: SchedulerConfig = field(default_factory=SchedulerConfig)
     model_conf: ModelConf = field(default_factory=ModelConf)
@@ -81,4 +81,13 @@ class Config:
     trainer_conf: TrainerConfig = field(default_factory=TrainerConfig)
     module_conf: ModuleConfig = field(default_factory=ModuleConfig)
     model_ckpt_conf: ModelCkptConfig = field(default_factory=ModelCkptConfig)
+    project_conf: ProjectConfig = field(default_factory=ProjectConfig)
+
+
+@dataclass
+class InferenceConfig:
+    task_name: str = 'semantic_segmentation'
+    model_name: str = 'best_model'
+    model_conf: ModelConf = field(default_factory=ModelConf)
+    data_conf: DataConfig = field(default_factory=DataConfig)
     project_conf: ProjectConfig = field(default_factory=ProjectConfig)

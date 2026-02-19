@@ -1,0 +1,8 @@
+data_conf:
+  dataset_name: oxford-iiit-pet
+  debug: null
+  img_size: 256
+  batch_size: 8
+  num_workers: 1
+  pin_memory: true
+  persistent_workers: true

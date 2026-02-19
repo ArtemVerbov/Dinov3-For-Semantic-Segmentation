@@ -1,3 +1,9 @@
+defaults:
+  - model
+  - data
+  - project
+  - _self_
+track_in_clearml: true
 optimizer:
   _target_: torch.optim.AdamW
   _partial_: true
@@ -6,29 +12,6 @@ scheduler:
   _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
   _partial_: true
   patience: 5
-model_conf:
-  dinov3_model_name: facebook/dinov3-convnext-small-pretrain-lvd1689m
-  dino_out_indices:
-  - 1
-  - 2
-  - 3
-  - 4
-  freeze_backbone: true
-  encoder_depth: 3
-  encoder_pyramid_channels: 256
-  encoder_segmentation_channels: 128
-  number_of_classes: 3
-  head_activation: null
-  head_kernel_size: 1
-  head_upsampling: 4
-data_conf:
-  dataset_name: oxford-iiit-pet
-  debug: null
-  img_size: 256
-  batch_size: 8
-  num_workers: 1
-  pin_memory: true
-  persistent_workers: true
 trainer_conf:
   max_epochs: 60
   check_val_every_n_epoch: 5
@@ -52,7 +35,3 @@ model_ckpt_conf:
   mode: min
   save_top_k: 1
   filename: best-{epoch:02d}-{${model_ckpt_conf.monitor}:.2f}
-project_conf:
-  project_name: dinov3_fpn
-  experiment_name: semantic_segmentation
-  track_in_clearml: true

@@ -84,7 +84,7 @@ def main(cfg: Config):
     optimizer_partial = hydra.utils.instantiate(cfg.optimizer)
     scheduler_partial = hydra.utils.instantiate(cfg.scheduler)
 
-    if cfg.project_conf.track_in_clearml:
+    if cfg.track_in_clearml:
         Task.force_requirements_env_freeze()
         date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
         task = Task.init(

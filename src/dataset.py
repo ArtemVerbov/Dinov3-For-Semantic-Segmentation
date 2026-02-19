@@ -4,11 +4,13 @@ import random
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+import torch
+import albumentations as A
 from torch.utils.data import Dataset, DataLoader
 
 from src.constants import DATASETS_PATH
 from src.transforms import get_transforms
-from src.visualization_utils import visualize_mask
+from src.visualization_utils import visualize_mask, plot_image
 
 
 class OxfordPetBoundaryDataset(Dataset):
@@ -121,6 +123,68 @@ class OxfordPetBoundaryDataset(Dataset):
         return image, mask
 
 
+class InferenceDataset(Dataset):
+    """
+    Dataset for inference on images in a folder using Albumentations transforms.
+    Returns tuple: (transformed_image, original_size)
+    """
+
+    def __init__(
+            self,
+            folder_path: str,
+            transforms: A.Compose | None = None,
+            image_extensions: list[str] = None,
+            debug: int | None = None,
+    ):
+        """
+        Args:
+            folder_path: Path to folder containing images
+            transforms: Albumentations transforms to apply
+            image_extensions: List of valid image extensions
+        """
+        self.folder_path = folder_path
+        self.transforms = transforms
+
+        if image_extensions is None:
+            image_extensions = ['.png', '.jpg', '.jpeg', '.bmp', '.tiff', '.tif', '.webp']
+
+        self.image_extensions = [ext.lower() for ext in image_extensions]
+
+        self.image_files = []
+        for file in os.listdir(folder_path):
+            if any(file.lower().endswith(ext) for ext in self.image_extensions):
+                self.image_files.append(file)
+
+        self.image_files.sort()
+
+        if len(self.image_files) == 0:
+            raise ValueError(f"No images found in {folder_path} with extensions {image_extensions}")
+
+        if debug:
+            self.image_files = self.image_files[:debug]
+
+    def __len__(self) -> int:
+        return len(self.image_files)
+
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor, tuple[int, int]]:
+        filename = self.image_files[idx]
+        img_path = os.path.join(self.folder_path, filename)
+
+        image = cv2.imread(img_path)
+        if image is None:
+            raise ValueError(f"Could not read image: {img_path}")
+
+        original_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+        original_size = (image.shape[0], image.shape[1])
+
+        if self.transforms:
+            transformed = self.transforms(image=original_image)
+            image = transformed['image']
+
+        return image, torch.tensor(original_image).permute(2, 0, 1), original_size
+
+
 if __name__ == '__main__':
     random.seed(42)
     dataset_root = DATASETS_PATH / 'pets'
@@ -129,9 +193,5 @@ if __name__ == '__main__':
 
     for image_tensor, mask_tensor in ds_loader:
         masks = visualize_mask(image_tensor, mask_tensor)
-        image_to_show = masks.permute(1, 2, 0).cpu().numpy()
-        plt.figure(figsize=(10, 10))
-        plt.imshow(image_to_show)
-        plt.axis('off')
-        plt.show()
+        plot_image(masks.permute(1, 2, 0).cpu().numpy())
 

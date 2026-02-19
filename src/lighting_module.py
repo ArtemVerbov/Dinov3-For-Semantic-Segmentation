@@ -1,35 +1,36 @@
 from functools import partial
-from typing import TYPE_CHECKING
 
 from lightning import LightningModule
 from segmentation_models_pytorch.losses import DiceLoss, MULTICLASS_MODE
 from torch import Tensor
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import LRScheduler
+import torch.nn.functional as F
 
 from src.metrcis import get_metrics
 from src.visualization_utils import visualize_mask
 
-if TYPE_CHECKING:
-    pass
 
 
 class SegmentationLightningModule(LightningModule):  # noqa: WPS214
     def __init__(
         self,
-        mask_to_labes: dict[str, int],
         model,
+        mask_to_labes: dict[str, int] | None = None,
         optimizer: Optimizer | partial | None = None,
         module_cfg=None,
         scheduler: LRScheduler | None = None,
     ):
         super().__init__()
 
-        metrics = get_metrics(
-            num_classes=len(mask_to_labes),
-            input_format='index',
-            include_background=module_cfg.include_background,
-        )
+        if mask_to_labes:
+            metrics = get_metrics(
+                num_classes=len(mask_to_labes),
+                input_format='index',
+                include_background=module_cfg.include_background,
+            )
+            self._valid_metrics = metrics.clone(prefix='val_')
+            self._test_metrics = metrics.clone(prefix='test_')
 
         self.loss = DiceLoss(MULTICLASS_MODE, from_logits=True)
 
@@ -39,8 +40,6 @@ class SegmentationLightningModule(LightningModule):  # noqa: WPS214
         self.module_cfg = module_cfg
         self.model = model
 
-        self._valid_metrics = metrics.clone(prefix='val_')
-        self._test_metrics = metrics.clone(prefix='test_')
         self.save_hyperparameters(ignore=['model'])
 
     def forward(self, images: Tensor) -> Tensor:
@@ -80,6 +79,12 @@ class SegmentationLightningModule(LightningModule):  # noqa: WPS214
 
         self._test_metrics(pred_mask, masks)
         self.log_dict(self._test_metrics, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+
+
+    def predict_step(self, batch, batch_idx, dataloader_idx=0):
+        image, original_image, img_size = batch
+        logits = self.forward(image)
+        return original_image, F.interpolate(logits, size=img_size, mode='nearest')
 
     # noinspection PyCallingNonCallable
     def configure_optimizers(self) -> dict:

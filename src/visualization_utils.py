@@ -1,11 +1,13 @@
+import numpy as np
 import torch
 import torch.nn.functional as F
+from matplotlib import pyplot as plt
 from torchvision.utils import draw_segmentation_masks, make_grid
 
 from src.transforms import inverse_normalization
 
 
-def visualize_mask(images: torch.Tensor, logits: torch.Tensor) -> torch.Tensor:
+def visualize_mask(images: torch.Tensor, logits: torch.Tensor, inverse_normalize=True, alpha: float = 0.3) -> torch.Tensor:
 
     images_with_masks = []
     if len(logits.shape) == 4:
@@ -21,7 +23,9 @@ def visualize_mask(images: torch.Tensor, logits: torch.Tensor) -> torch.Tensor:
         foreground_masks = one_hot[:, 1:].bool()
 
     for batch_idx in range(images.shape[0]):
-        image = inverse_normalization(images[batch_idx].cpu())
+        image = images[batch_idx].cpu()
+        if inverse_normalize:
+            image = inverse_normalization(image)
 
         masks = foreground_masks[batch_idx]
 
@@ -31,9 +35,16 @@ def visualize_mask(images: torch.Tensor, logits: torch.Tensor) -> torch.Tensor:
         image_with_mask = draw_segmentation_masks(
             image=image,
             masks=masks,
-            alpha=0.3,
+            alpha=alpha,
             colors=["blue", "orange"]
         )
         images_with_masks.append(image_with_mask)
 
     return make_grid(images_with_masks, nrow=2)
+
+
+def plot_image(image: np.ndarray, fig_size: tuple[int, int] = (10, 10)) -> None:
+    plt.figure(figsize=fig_size)
+    plt.imshow(image)
+    plt.axis('off')
+    plt.show()
