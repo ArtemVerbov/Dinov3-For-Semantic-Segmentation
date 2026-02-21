@@ -8,6 +8,12 @@ optimizer:
   _target_: torch.optim.AdamW
   _partial_: true
   lr: 2e-4
+loss:
+  _target_: src.loss.loss_fn
+  _partial_: true
+  cross_entropy_coef: 0.0
+  dice_mode: multiclass
+  dice_logits: true
 scheduler:
   _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
   _partial_: true
@@ -29,6 +35,7 @@ module_conf:
   monitor: val_loss_epoch
   include_background: false
   batches_to_visualize: 5
+  backbone_lr: 2e-6
 model_ckpt_conf:
   monitor: val_loss_epoch
   save_on_exception: true

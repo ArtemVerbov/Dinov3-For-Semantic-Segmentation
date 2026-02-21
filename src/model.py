@@ -17,6 +17,7 @@ class FPNBackboneDINOv3(nn.Module):
             head_activation: str = None,
             head_kernel_size: int = 1,
             head_upsampling: int = 4,
+            n_last_stages: int | None = None,
     ) -> None:
         super().__init__()
         self.dino_backbone = DINOv3ConvNextBackbone.from_pretrained(
@@ -27,6 +28,12 @@ class FPNBackboneDINOv3(nn.Module):
             for param in self.dino_backbone.parameters():
                 param.requires_grad = False
             self.dino_backbone.eval()
+        if n_last_stages:
+            stages = self.dino_backbone.stages
+            for stage in stages[-n_last_stages:]:
+                stage.train()
+                for param in stage.parameters():
+                    param.requires_grad = True
 
         self.fpn_decoder = FPNDecoder(
             encoder_channels=self.dino_backbone.channels,

@@ -15,6 +15,14 @@ class SchedulerConfig:
     patience: int = 3
 
 @dataclass
+class LossConfig:
+    _target_: str = "src.loss.loss_fn"
+    _partial_: bool = True
+    cross_entropy_coef: float = 0.8
+    dice_mode: str =  'multiclass'
+    dice_logits: bool = True
+
+@dataclass
 class ModelConf:
     dinov3_model_name: str = "facebook/dinov3-convnext-small-pretrain-lvd1689m"
     dino_out_indices: List[int] = field(default_factory=lambda: [1, 2, 3, 4])
@@ -26,6 +34,7 @@ class ModelConf:
     head_activation: Optional[str] = None
     head_kernel_size: int = 1
     head_upsampling: int = 4
+    n_last_stages: int | None = None
 
 @dataclass
 class DataConfig:
@@ -57,6 +66,7 @@ class ModuleConfig:
     monitor: str = 'val_loss'
     include_background: bool = False
     batches_to_visualize: int = 5
+    backbone_lr: float = 1e-5
 
 @dataclass
 class ModelCkptConfig:
@@ -75,6 +85,7 @@ class ProjectConfig:
 class Config:
     track_in_clearml: bool = True
     optimizer: OptimizerConfig = field(default_factory=OptimizerConfig)
+    loss: LossConfig = field(default_factory=LossConfig)
     scheduler: SchedulerConfig = field(default_factory=SchedulerConfig)
     model_conf: ModelConf = field(default_factory=ModelConf)
     data_conf: DataConfig = field(default_factory=DataConfig)

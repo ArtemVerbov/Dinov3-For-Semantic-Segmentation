@@ -15,37 +15,11 @@ def get_transforms(img_size, transforms_type):
     else:
         transforms = albu.Compose(
             [
-                albu.OneOf([
-                    albu.Resize(height=img_size, width=img_size),
-                ],
-                    p=1.0
-                ),
-                albu.OneOf(
-                    [
-                        albu.RGBShift(p=1.0),
-                        albu.HueSaturationValue(p=1.0),
-                        albu.ChannelShuffle(p=1.0),
-                        albu.CLAHE(p=1.0),
-                        albu.RandomBrightnessContrast(p=1.0),
-                        albu.RandomGamma(p=1.0),
-                        albu.ToGray(p=1.0),
-                    ],
-                    p=1.0
-                ),
-                albu.OneOf(
-                    [
-                        albu.Blur(p=1.0),
-                        albu.MedianBlur(p=1.0),
-                        albu.GaussNoise(p=1.0),
-                        albu.SaltAndPepper(p=1.0),
-                        albu.ImageCompression(quality_range=(75, 85), p=1.0),
-                    ],
-                    p=1.0
-                ),
+                albu.Resize(height=img_size, width=img_size),
                 albu.HorizontalFlip(p=0.5),
                 albu.Affine(
                     scale=(0.9, 1.1),
-                    rotate=(-3, 3),
+                    rotate=(-5, 5),
                     p=0.5
                 ),
                 albu.Normalize(),  # Normalization

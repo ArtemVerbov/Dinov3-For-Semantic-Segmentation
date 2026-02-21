@@ -13,3 +13,4 @@ model_conf:
   head_activation: null
   head_kernel_size: 1
   head_upsampling: 4
+  n_last_stages: null

@@ -4,7 +4,7 @@ from pathlib import Path
 import hydra
 from clearml import Task
 from lightning import seed_everything, Trainer
-from lightning.pytorch.callbacks import ModelCheckpoint
+from lightning.pytorch.callbacks import ModelCheckpoint, LearningRateMonitor
 from omegaconf import OmegaConf
 from segmentation_models_pytorch.datasets import SimpleOxfordPetDataset
 from torch.utils.data import DataLoader
@@ -82,6 +82,7 @@ def main(cfg: Config):
     ckpt_conf = OmegaConf.to_container(cfg.model_ckpt_conf, resolve=True)
 
     optimizer_partial = hydra.utils.instantiate(cfg.optimizer)
+    loss_partial = hydra.utils.instantiate(cfg.loss)
     scheduler_partial = hydra.utils.instantiate(cfg.scheduler)
 
     if cfg.track_in_clearml:
@@ -102,19 +103,22 @@ def main(cfg: Config):
     lm = SegmentationLightningModule(
         mask_to_labes=mask_to_labes,
         model=fpnd,
+        loss_fn=loss_partial,
         optimizer=optimizer_partial,
         scheduler=scheduler_partial,
         module_cfg=cfg.module_conf,
     )
 
+    callbacks = [LearningRateMonitor()]
     model_checkpoint = None
     if cfg.trainer_conf.enable_checkpointing:
         model_checkpoint = ModelCheckpoint(
             **ckpt_conf
         )
+        callbacks.append(model_checkpoint)
     trainer_lm = Trainer(
         **training_conf,
-        callbacks=model_checkpoint
+        callbacks=callbacks
     )
 
     trainer_lm.fit(
@@ -124,7 +128,7 @@ def main(cfg: Config):
     )
     trainer_lm.test(dataloaders=test_dl, ckpt_path='best', weights_only=False)
 
-    if cfg.trainer_conf.enable_checkpointing and cfg.project_conf.track_in_clearml:
+    if cfg.trainer_conf.enable_checkpointing and cfg.track_in_clearml:
         best_checkpoint_path = model_checkpoint.best_model_path
         if best_checkpoint_path:
             print(f"Uploading best model: {Path(best_checkpoint_path).name}")

@@ -1,12 +1,13 @@
 from functools import partial
+from typing import Callable
 
 from lightning import LightningModule
-from segmentation_models_pytorch.losses import DiceLoss, MULTICLASS_MODE
 from torch import Tensor
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import LRScheduler
 import torch.nn.functional as F
 
+from configs import ModuleConfig
 from src.metrcis import get_metrics
 from src.visualization_utils import visualize_mask
 
@@ -16,9 +17,10 @@ class SegmentationLightningModule(LightningModule):  # noqa: WPS214
     def __init__(
         self,
         model,
+        loss_fn: Callable | None = None,
+        module_cfg: ModuleConfig | None = None,
         mask_to_labes: dict[str, int] | None = None,
         optimizer: Optimizer | partial | None = None,
-        module_cfg=None,
         scheduler: LRScheduler | None = None,
     ):
         super().__init__()
@@ -32,7 +34,7 @@ class SegmentationLightningModule(LightningModule):  # noqa: WPS214
             self._valid_metrics = metrics.clone(prefix='val_')
             self._test_metrics = metrics.clone(prefix='test_')
 
-        self.loss = DiceLoss(MULTICLASS_MODE, from_logits=True)
+        self.loss = loss_fn
 
         self.optimizer = optimizer
         self.scheduler = scheduler
@@ -88,7 +90,25 @@ class SegmentationLightningModule(LightningModule):  # noqa: WPS214
 
     # noinspection PyCallingNonCallable
     def configure_optimizers(self) -> dict:
-        optimizer = self.optimizer(params=self.parameters())
+        backbone_params = []
+        decoder_head_params = []
+
+        for name, p in self.named_parameters():
+            if not p.requires_grad:
+                continue
+
+            if name.startswith("model.dino_backbone"):
+                backbone_params.append(p)
+            else:
+                decoder_head_params.append(p)
+
+        param_groups = [{"params": decoder_head_params}]
+
+        if backbone_params:
+            param_groups.append({"params": backbone_params, "lr": self.module_cfg.backbone_lr})
+
+        optimizer = self.optimizer(param_groups)
+
         if self.scheduler:
             scheduler = self.scheduler(optimizer)
 

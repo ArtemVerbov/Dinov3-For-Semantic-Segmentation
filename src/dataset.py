@@ -187,8 +187,8 @@ class InferenceDataset(Dataset):
 
 if __name__ == '__main__':
     random.seed(42)
-    dataset_root = DATASETS_PATH / 'pets'
-    dataset = OxfordPetBoundaryDataset(root_dir=dataset_root, transform=get_transforms(256, 'val'), split='val')
+    dataset_root = DATASETS_PATH / 'oxford-iiit-pet'
+    dataset = OxfordPetBoundaryDataset(root_dir=dataset_root, transform=get_transforms(512, 'train'), split='val')
     ds_loader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=0)
 
     for image_tensor, mask_tensor in ds_loader:
